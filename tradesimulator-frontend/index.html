@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TradeSimulator v2.0</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>TradeSimulator v2.0</h1>
+      <div class="header-controls">
+        <div class="header-ctrl">
+          <label>User</label>
+          <select id="user-select" onchange="switchUser(this.value)">
+            <option value="alice">Alice</option>
+            <option value="bob">Bob</option>
+            <option value="charlie">Charlie</option>
+          </select>
+        </div>
+        <div class="header-ctrl">
+          <label>Pricing Model</label>
+          <select id="strategy-select" onchange="switchStrategy(this.value)">
+            <option value="random-walk">Random Walk</option>
+            <option value="mean-reversion">Mean Reversion</option>
+            <option value="trend-following">Trend Following</option>
+          </select>
+        </div>
+        <div id="clock"></div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Portfolio Summary -->
+      <div class="card full-width">
+        <h2>Portfolio — <span id="active-user">Alice</span></h2>
+        <div class="stats">
+          <div class="stat">
+            <span class="label">Cash</span
+            ><span class="value" id="cash">$10,000.00</span>
+          </div>
+          <div class="stat">
+            <span class="label">Total Value</span
+            ><span class="value green" id="total-value">$10,000.00</span>
+          </div>
+        </div>
+        <div style="margin-top: 14px">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Shares</th>
+                <th>Current Price</th>
+                <th>Market Value</th>
+              </tr>
+            </thead>
+            <tbody id="holdings-body">
+              <tr>
+                <td colspan="4" class="empty">No holdings yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Market Prices -->
+      <div class="card">
+        <h2>
+          Live Market Prices
+          <span id="price-dot" style="color: #4ade80; font-size: 0.7rem"
+            >●</span
+          >
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Price</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody id="price-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Order Entry -->
+      <div class="card">
+        <h2>Place Order</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ticker</label>
+            <select id="order-ticker">
+              <option>AAPL</option>
+              <option>GOOG</option>
+              <option>TSLA</option>
+              <option>AMZN</option>
+              <option>MSFT</option>
+              <option>NVDA</option>
+              <option>META</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Order Type</label>
+            <select id="order-type" onchange="toggleLimitPrice()">
+              <option value="market">Market</option>
+              <option value="limit">Limit</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantity</label>
+            <input
+              type="number"
+              id="order-qty"
+              min="1"
+              value="1"
+              placeholder="Shares"
+            />
+          </div>
+          <div class="form-group" id="limit-price-row">
+            <label>Limit Price ($)</label>
+            <input
+              type="number"
+              id="limit-price"
+              min="0.01"
+              step="0.01"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-buy" onclick="placeOrder('BUY')">BUY</button>
+          <button class="btn btn-sell" onclick="placeOrder('SELL')">
+            SELL
+          </button>
+        </div>
+        <div id="order-msg"></div>
+      </div>
+
+      <!-- Notifications + Channel Config -->
+      <div class="card">
+        <h2>Notifications</h2>
+        <div class="channel-row">
+          <span class="channel-label">Channels:</span>
+          <label class="channel-check"
+            ><input type="checkbox" id="ch-console" checked disabled />
+            Console</label
+          >
+          <label class="channel-check"
+            ><input type="checkbox" id="ch-email" onchange="updateChannels()" />
+            Email</label
+          >
+          <label class="channel-check"
+            ><input type="checkbox" id="ch-sms" onchange="updateChannels()" />
+            SMS</label
+          >
+        </div>
+        <div id="notif-list"><p class="empty">No notifications yet.</p></div>
+      </div>
+
+      <!-- Pending Orders -->
+      <div class="card">
+        <h2>Pending Orders</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Side</th>
+              <th>Qty</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pending-body">
+            <tr>
+              <td colspan="4" class="empty">No pending orders</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Trade History -->
+      <div class="card full-width">
+        <h2>Trade History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Ticker</th>
+              <th>Side</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr>
+              <td colspan="6" class="empty">No trades yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

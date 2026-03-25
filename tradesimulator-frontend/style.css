@@ -1,0 +1,76 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+header { background: #1e293b; padding: 12px 24px; border-bottom: 1px solid #334155;
+         display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+header h1 { font-size: 1.3rem; color: #38bdf8; font-weight: 700; }
+
+.header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.header-ctrl { display: flex; align-items: center; gap: 6px; }
+.header-ctrl label { font-size: 0.75rem; color: #94a3b8; }
+.header-ctrl select { background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+                      border-radius: 6px; padding: 5px 8px; font-size: 0.8rem; outline: none; cursor: pointer; }
+.header-ctrl select:focus { border-color: #38bdf8; }
+
+#clock { font-size: 0.8rem; color: #94a3b8; }
+
+.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+.card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px; }
+.card h2 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: #94a3b8;
+           letter-spacing: .05em; margin-bottom: 12px; }
+.full-width { grid-column: 1 / -1; }
+
+.stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.stat { display: flex; flex-direction: column; }
+.stat .label { font-size: 0.72rem; color: #94a3b8; }
+.stat .value { font-size: 1.4rem; font-weight: 700; color: #f8fafc; }
+.stat .value.green { color: #4ade80; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th { text-align: left; padding: 6px 8px; color: #94a3b8; font-weight: 500; border-bottom: 1px solid #334155; }
+td { padding: 6px 8px; border-bottom: 1px solid #1e293b; }
+tr:last-child td { border-bottom: none; }
+.up   { color: #4ade80; }
+.down { color: #f87171; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; }
+.badge.buy  { background: #14532d; color: #4ade80; }
+.badge.sell { background: #450a0a; color: #f87171; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+label { font-size: 0.75rem; color: #94a3b8; }
+select, input[type="number"] { background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+                border-radius: 6px; padding: 7px 10px; font-size: 0.85rem; outline: none; }
+select:focus, input:focus { border-color: #38bdf8; }
+
+.btn { padding: 8px 18px; border: none; border-radius: 6px; font-size: 0.85rem;
+       font-weight: 600; cursor: pointer; transition: opacity .15s; }
+.btn:hover { opacity: .85; }
+.btn-buy  { background: #16a34a; color: #fff; }
+.btn-sell { background: #dc2626; color: #fff; }
+.btn-row  { display: flex; gap: 10px; margin-top: 4px; }
+#limit-price-row { display: none; }
+#order-msg { font-size: 0.8rem; margin-top: 8px; min-height: 18px; }
+.msg-ok  { color: #4ade80; }
+.msg-err { color: #f87171; }
+
+/* Notification channel checkboxes */
+.channel-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+               flex-wrap: wrap; }
+.channel-label { font-size: 0.75rem; color: #94a3b8; }
+.channel-check { display: flex; align-items: center; gap: 4px; font-size: 0.8rem;
+                 color: #cbd5e1; cursor: pointer; }
+.channel-check input { cursor: pointer; accent-color: #38bdf8; }
+
+#notif-list { max-height: 120px; overflow-y: auto; }
+.notif-item { font-size: 0.8rem; padding: 5px 0; border-bottom: 1px solid #334155; color: #cbd5e1; }
+.notif-item:last-child { border-bottom: none; }
+.empty { color: #475569; font-size: 0.8rem; font-style: italic; }
+
+#holdings-body td:first-child { color: #38bdf8; font-weight: 600; }
+
+@keyframes flash-up   { 0%{background:#052e16} 100%{background:transparent} }
+@keyframes flash-down { 0%{background:#450a0a} 100%{background:transparent} }
+.flash-up   { animation: flash-up   .8s ease-out; }
+.flash-down { animation: flash-down .8s ease-out; }
