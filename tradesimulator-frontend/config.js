@@ -1,1 +1,2 @@
-const API_BASE = window.TRADESIM_API_URL || "http://localhost:8080";
+const API_BASE =
+  "https://project1-part1-sdhekane.onrender.com" || "http://localhost:8080";
