@@ -2,6 +2,7 @@ let prevPrices = {};
 let allNotifications = [];
 let activeUser = "alice";
 
+// ── Clock ─────────────────────────────────────────────────────────────────
 function updateClock() {
   document.getElementById("clock").textContent =
     new Date().toLocaleTimeString();
@@ -19,14 +20,36 @@ function fmt(n) {
   );
 }
 
-function switchUser(userId) {
-  activeUser = userId;
+async function switchUser(userId) {
+  activeUser = userId.toLowerCase();
+
+  console.log("[switchUser] Switching to:", activeUser);
+
   document.getElementById("active-user").textContent =
     userId.charAt(0).toUpperCase() + userId.slice(1);
-  allNotifications = []; // clear notification panel for new user
+
+  allNotifications = [];
   document.getElementById("notif-list").innerHTML =
     '<p class="empty">No notifications yet.</p>';
-  pollAll();
+  document.getElementById("holdings-body").innerHTML =
+    '<tr><td colspan="4" class="empty">Loading...</td></tr>';
+  document.getElementById("pending-body").innerHTML =
+    '<tr><td colspan="4" class="empty">Loading...</td></tr>';
+  document.getElementById("history-body").innerHTML =
+    '<tr><td colspan="6" class="empty">Loading...</td></tr>';
+  document.getElementById("cash").textContent = "...";
+  document.getElementById("total-value").textContent = "...";
+
+  try {
+    const r = await fetch(
+      `${API_BASE}/api/notifications/channels?user=${activeUser}`,
+    );
+    const data = await r.json();
+    document.getElementById("ch-email").checked = data.active.includes("email");
+    document.getElementById("ch-sms").checked = data.active.includes("sms");
+  } catch (e) {}
+
+  await pollAll();
 }
 
 async function switchStrategy(name) {
@@ -40,7 +63,6 @@ async function switchStrategy(name) {
   }
 }
 
-// Sync strategy dropdown with what the server reports as active
 async function syncStrategy() {
   try {
     const r = await fetch(`${API_BASE}/api/strategy`);
@@ -49,7 +71,6 @@ async function syncStrategy() {
   } catch (e) {}
 }
 
-// ── Notification channels ─────────────────────────────────────────────────
 async function updateChannels() {
   const channels = ["console"];
   if (document.getElementById("ch-email").checked) channels.push("email");
@@ -65,7 +86,6 @@ async function updateChannels() {
   }
 }
 
-// ── Fetch prices ──────────────────────────────────────────────────────────
 async function fetchPrices() {
   try {
     const r = await fetch(`${API_BASE}/api/prices`);
@@ -97,15 +117,23 @@ function renderPrices(prices) {
   }
 }
 
-// ── Fetch portfolio ───────────────────────────────────────────────────────
 async function fetchPortfolio() {
+  const user = activeUser;
   try {
-    const r = await fetch(`${API_BASE}/api/portfolio?user=${activeUser}`);
+    const url = `${API_BASE}/api/portfolio?user=${user}`;
+    console.log("[fetchPortfolio] GET", url);
+    const r = await fetch(url);
     const p = await r.json();
+
+    if (user !== activeUser) {
+      console.log("[fetchPortfolio] Discarding stale response for", user);
+      return;
+    }
+
     document.getElementById("cash").textContent = fmt(p.cash);
     document.getElementById("total-value").textContent = fmt(p.totalValue);
     const tbody = document.getElementById("holdings-body");
-    if (Object.keys(p.holdings).length === 0) {
+    if (!p.holdings || Object.keys(p.holdings).length === 0) {
       tbody.innerHTML =
         '<tr><td colspan="4" class="empty">No holdings yet</td></tr>';
     } else {
@@ -117,14 +145,21 @@ async function fetchPortfolio() {
         tbody.appendChild(tr);
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("[fetchPortfolio] Error:", e);
+  }
 }
 
-// ── Fetch pending orders ──────────────────────────────────────────────────
 async function fetchPending() {
+  const user = activeUser;
   try {
-    const r = await fetch(`${API_BASE}/api/orders/pending?user=${activeUser}`);
+    const url = `${API_BASE}/api/orders/pending?user=${user}`;
+    console.log("[fetchPending] GET", url);
+    const r = await fetch(url);
     const orders = await r.json();
+
+    if (user !== activeUser) return; // stale guard
+
     const tbody = document.getElementById("pending-body");
     if (orders.length === 0) {
       tbody.innerHTML =
@@ -140,14 +175,21 @@ async function fetchPending() {
         tbody.appendChild(tr);
       });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("[fetchPending] Error:", e);
+  }
 }
 
-// ── Fetch trade history ───────────────────────────────────────────────────
 async function fetchHistory() {
+  const user = activeUser;
   try {
-    const r = await fetch(`${API_BASE}/api/trades?user=${activeUser}`);
+    const url = `${API_BASE}/api/trades?user=${user}`;
+    console.log("[fetchHistory] GET", url);
+    const r = await fetch(url);
     const trades = await r.json();
+
+    if (user !== activeUser) return;
+
     const tbody = document.getElementById("history-body");
     if (trades.length === 0) {
       tbody.innerHTML =
@@ -164,14 +206,19 @@ async function fetchHistory() {
         tbody.appendChild(tr);
       });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("[fetchHistory] Error:", e);
+  }
 }
 
-// ── Fetch notifications ───────────────────────────────────────────────────
 async function fetchNotifications() {
+  const user = activeUser;
   try {
-    const r = await fetch(`${API_BASE}/api/notifications?user=${activeUser}`);
+    const r = await fetch(`${API_BASE}/api/notifications?user=${user}`);
     const data = await r.json();
+
+    if (user !== activeUser) return; // stale guard
+
     if (data.messages && data.messages.length > 0) {
       allNotifications = [...data.messages, ...allNotifications].slice(0, 30);
       const div = document.getElementById("notif-list");
@@ -186,14 +233,12 @@ async function fetchNotifications() {
   } catch (e) {}
 }
 
-// ── Toggle limit price ────────────────────────────────────────────────────
 function toggleLimitPrice() {
   const t = document.getElementById("order-type").value;
   document.getElementById("limit-price-row").style.display =
     t === "limit" ? "flex" : "none";
 }
 
-// ── Place order ───────────────────────────────────────────────────────────
 async function placeOrder(side) {
   const ticker = document.getElementById("order-ticker").value;
   const type = document.getElementById("order-type").value;
@@ -217,6 +262,8 @@ async function placeOrder(side) {
     url = `${API_BASE}/api/orders/limit?user=${activeUser}`;
     body = { ticker, side, quantity, limitPrice };
   }
+
+  console.log("[placeOrder] POST", url, body);
 
   try {
     const r = await fetch(url, {
@@ -253,7 +300,6 @@ function showMsg(msg, ok) {
   setTimeout(() => (el.textContent = ""), 4000);
 }
 
-// ── Poll loop ─────────────────────────────────────────────────────────────
 async function pollAll() {
   await fetchPrices();
   await fetchPortfolio();
